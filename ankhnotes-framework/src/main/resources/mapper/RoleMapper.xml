@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--RoleMapper的映射文件-->
+<mapper namespace="com.ankhnotes.mapper.RoleMapper">
+    <!--resultType不写"list", 写List内元素的类型, 如返回List<String>, 则resultType写"string"-->
+    <!--连表查询非超级管理员(userId!=1)的角色信息-->
+    <select id="selectRoleKeyByOtherUserId" resultType="string">
+        select r.role_key
+        from sys_user_role u_r
+            left join sys_role r
+                on u_r.role_id = r.id
+        where u_r.user_id = #{userId}
+          and r.status = '0'
+          and r.del_flag = '0'
+    </select>
+</mapper>

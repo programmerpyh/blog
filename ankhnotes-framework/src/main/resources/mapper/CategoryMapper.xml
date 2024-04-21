@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--TagMapper的映射文件-->
+<mapper namespace="com.ankhnotes.mapper.CategoryMapper">
+
+    <!--根据id删除标签-->
+    <update id="myUpdateById">
+        update sg_category
+        set del_flag = #{flag}
+        where id = #{id}
+    </update>
+
+</mapper>
