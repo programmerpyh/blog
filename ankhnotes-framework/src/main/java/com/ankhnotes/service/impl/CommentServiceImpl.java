@@ -87,16 +87,15 @@ public class CommentServiceImpl extends ServiceImpl<CommentMapper, Comment> impl
             commentWrapper.eq(Comment::getToCommentId, commentVO.getId());
             commentWrapper.orderByDesc(Comment::getCreateTime);
 
-            List<Comment> childs = list(commentWrapper);
+            List<Comment> children = list(commentWrapper);
 
-            if(!childs.isEmpty()) {
+            if(!children.isEmpty()) {
 
-                List<CommentVO> childVOs = BeanCopyUtils.copyBeanList(childs, CommentVO.class);
+                List<CommentVO> childVOs = BeanCopyUtils.copyBeanList(children, CommentVO.class);
 
                 childVOs.forEach(childVO -> childVO.setUserName(userMapper.selectById(childVO.getCreateBy()).getNickName()));
 
                 checkChildCommentVOS(articleId, childVOs);
-
 
                 commentVO.setChildren(childVOs);
             }
