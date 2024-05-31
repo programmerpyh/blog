@@ -12,7 +12,7 @@
 							<template slot="title"><i class="fa fa-wa fa-archive"></i> 分类</template>
 							<el-menu-item v-for="(item,index) in classListObj" :key="'class1'+index" :index="'/Share?classId='+item.id">{{item.name}}</el-menu-item>
 						</el-submenu>
-						<el-menu-item index="/Reward"><i class="fa fa-wa fa-cny"></i> 赞赏</el-menu-item>
+						<!--<el-menu-item index="/Reward"><i class="fa fa-wa fa-cny"></i> 赞赏</el-menu-item>-->
 						<el-menu-item index="/Friendslink"><i class="fa fa-wa fa-users"></i>友链</el-menu-item>
 
 						<div class="userInfo">
@@ -36,17 +36,17 @@
 			</el-col>
 		</el-row>
 	</div>
-	<div class="headImgBox" :style="{backgroundImage:this.$store.state.themeObj.top_image?'url('+this.$store.state.themeObj.top_image+')':'url(static/img/headbg05.jpg)'}">
+	<div class="headImgBox" :style="{backgroundImage:this.$store.state.themeObj.top_image?'url('+this.$store.state.themeObj.top_image+')':'url(static/img/headbg06.png)'}">
 		<div class="scene">
 			<div><span id="luke"></span></div>
 		</div>
 		<div class="h-information">
 
-                    <img :src="this.$store.state.themeObj.head_portrait?this.$store.state.themeObj.head_portrait:'static/img/tou.png'" alt="">
+                    <img :src="this.$store.state.themeObj.head_portrait?this.$store.state.themeObj.head_portrait:'static/img/tou2.png'" alt="">
 
 			<h2 class="h-description">
 
-                        {{this.$store.state.themeObj.autograph?this.$store.state.themeObj.autograph:"三更灯火五更鸡，正是男儿读书时"}}
+                        {{this.$store.state.themeObj.autograph?this.$store.state.themeObj.autograph:"Time to study"}}
 
                 </h2>
 		</div>
@@ -71,7 +71,7 @@ export default {
 			pMenu: true, //手机端菜单打开
 			// path:'',//当前打开页面的路径
 			input: '', //input输入内容
-			headBg: 'url(static/img/headbg05.jpg)', //头部背景图
+			headBg: 'url(static/img/headbg06.png)', //头部背景图
 			headTou: '', //头像
 			projectList: '' //项目列表
 		}

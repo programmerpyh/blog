@@ -47,7 +47,7 @@ public class MyMetaObjectHandler implements MetaObjectHandler {
         try{
             loginUserId = SecurityUtils.getLoginUserId();
         }catch (Exception e){
-            e.printStackTrace();
+            //e.printStackTrace();
             loginUserId = -1L;
         }
 

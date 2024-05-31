@@ -21,7 +21,7 @@
             </header>
             <div class="article-content markdown-body" v-html="detailObj.content"></div>
 
-            <div class="donate">
+            <!-- <div class="donate">
                 <div class="donate-word">
                     <span @click="pdonate=!pdonate">赞赏</span>
                 </div>
@@ -39,7 +39,7 @@
                         </div>
                     </el-col>
                 </el-row>
-            </div>
+            </div> -->
         </div>
 </template>
 

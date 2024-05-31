@@ -16,7 +16,7 @@
         </h1>
       </div>
       <div class="r1-body">
-        <p>三更</p>
+        <p>Ankh</p>
         <div class="catch-me">
           <div class="">
             <el-tooltip class="item" content="Github" placement="top">
@@ -122,9 +122,9 @@ export default {
       catchMeObj: {
         //个人信息
         git: "https://gitee.com",
-        qq: "/static/img/qq.png",
+        qq: "/static/img/qq.jpg",
         sina: "https://weibo.com",
-        wechat: "/static/img/qq.jpg",
+        wechat: "/static/img/wechat.jpg",
         csdn: "http://www.csdn.cn",
         job: "https://www.baidu.com",
       },
