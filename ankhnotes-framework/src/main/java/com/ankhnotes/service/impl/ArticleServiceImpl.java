@@ -27,6 +27,9 @@ import org.springframework.util.StringUtils;
 
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * 文章表(Article)表服务实现类
@@ -47,6 +50,8 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     @Autowired
     ArticleTagService articleTagService;
+
+    ReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     /**
      * 查询浏览量最多的十篇文章
@@ -168,27 +173,43 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    @Transactional(rollbackFor = {Exception.class})
     public ResponseResult updateViewCount(String articleId) {
-        //Redis里viewCount的类型为Integer
-        Integer viewCount = redisCache.getCacheMapValue("article:viewCount", articleId);
-        redisCache.setCacheMapValue("article:viewCount", articleId, viewCount+1);
-        return ResponseResult.okResult();
+        readWriteLock.writeLock().lock();
+        try{
+            //如果redis中查询不到该articleId对应的浏览量, 则去mysql中读取并存入redis
+            if(!redisCache.isCacheMapHasHkey("article:viewCount", articleId)){
+                LambdaQueryWrapper<Article> wrapper = new LambdaQueryWrapper<>();
+                wrapper.eq(Article::getId, Long.parseLong(articleId));
+                wrapper.select(Article::getViewCount);
+                Long articleViewCount = getOne(wrapper).getViewCount();
+                redisCache.setCacheMapValue("article:viewCount", articleId, articleViewCount.intValue());
+            }
+
+            //Redis里viewCount的类型为Integer
+            Integer viewCount = redisCache.getCacheMapValue("article:viewCount", articleId);
+            redisCache.setCacheMapValue("article:viewCount", articleId, viewCount+1);
+            return ResponseResult.okResult();
+        }finally {
+            readWriteLock.writeLock().unlock();
+        }
     }
 
     @Override
-    @Transactional(rollbackFor = {Exception.class, Error.class})
+    @Transactional(rollbackFor = {Exception.class})
     public ResponseResult writeArticle(WriteBlogDto writeBlogDto) {
         //存储文章
         Article article = BeanCopyUtils.copyBean(writeBlogDto, Article.class);
         save(article);
 
-        //同步浏览量到redis
-        redisCache.setCacheMapValue("article:viewCount", article.getId().toString(), 0);
-
         //处理文章-标签关联表
         Long articleId =article.getId();
         List<Long> tagIds = writeBlogDto.getTags();
-        tagIds.forEach(tag -> articleTagService.save(new ArticleTag(articleId, tag)));
+        if(tagIds!=null)
+            tagIds.forEach(tag -> articleTagService.save(new ArticleTag(articleId, tag)));
+
+        //同步浏览量到redis
+        redisCache.setCacheMapValue("article:viewCount", article.getId().toString(), 0);
 
         return ResponseResult.okResult();
     }
@@ -211,8 +232,13 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
 
     //查询redis中文章浏览量
     private void getViewCountByRedis(Article article){
-        Integer viewCount = redisCache.getCacheMapValue("article:viewCount", article.getId().toString());
-        article.setViewCount(viewCount.longValue());
+        readWriteLock.readLock().lock();
+        try{
+            Integer viewCount = redisCache.getCacheMapValue("article:viewCount", article.getId().toString());
+            article.setViewCount(viewCount.longValue());
+        }finally {
+            readWriteLock.readLock().unlock();
+        }
     }
 
     //同步所有redis内文章的浏览量到mysql
