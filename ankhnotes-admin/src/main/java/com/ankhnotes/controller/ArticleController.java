@@ -1,12 +1,15 @@
 package com.ankhnotes.controller;
 
 import com.ankhnotes.annotation.mySystemLog;
+import com.ankhnotes.domain.Article;
 import com.ankhnotes.domain.ResponseResult;
 import com.ankhnotes.dto.UpdateArticleDto;
 import com.ankhnotes.dto.WriteBlogDto;
 import com.ankhnotes.service.ArticleService;
 import com.ankhnotes.service.TagService;
+import com.ankhnotes.utils.RedisCache;
 import com.ankhnotes.utils.SystemUtils;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,6 +25,9 @@ public class ArticleController {
 
     @Autowired
     ArticleService articleService;
+
+    @Autowired
+    RedisCache redisCache;
 
     @mySystemLog(logDescription = "写博客页面新增博客")
     @PostMapping
@@ -51,9 +57,21 @@ public class ArticleController {
     @DeleteMapping("/{id}")
     public ResponseResult deleteArticle(@PathVariable("id") String stringIds){
         List<Long> ids = SystemUtils.stringTransferToListLong(stringIds);
+
+        //将redis中的文章的浏览量同步到mysql中并删除
+        for(Long id : ids){
+            if(redisCache.isCacheMapHasHkey("article:viewCount", id.toString())){
+                Integer articleViewCount = redisCache.getCacheMapValue("article:viewCount", id.toString());
+                LambdaUpdateWrapper<Article> wrapper = new LambdaUpdateWrapper<>();
+                wrapper.set(Article::getViewCount, articleViewCount).eq(Article::getId, id);
+                articleService.update(wrapper);
+                redisCache.delCacheMapValue("article:viewCount", id.toString());
+            }
+        }
+
         boolean isDeleteSuccessful = articleService.removeByIds(ids);
         if(!isDeleteSuccessful)
-            throw new RuntimeException("逻辑删除用户失败");
+            throw new RuntimeException("逻辑删除文章失败");
         return ResponseResult.okResult();
     }
 
