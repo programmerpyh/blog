@@ -22,6 +22,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.time.LocalTime;
@@ -175,10 +176,14 @@ public class ArticleServiceImpl extends ServiceImpl<ArticleMapper, Article> impl
     }
 
     @Override
+    @Transactional(rollbackFor = {Exception.class, Error.class})
     public ResponseResult writeArticle(WriteBlogDto writeBlogDto) {
-        //是否初始化viewCount?
+        //存储文章
         Article article = BeanCopyUtils.copyBean(writeBlogDto, Article.class);
         save(article);
+
+        //同步浏览量到redis
+        redisCache.setCacheMapValue("article:viewCount", article.getId().toString(), 0);
 
         //处理文章-标签关联表
         Long articleId =article.getId();
