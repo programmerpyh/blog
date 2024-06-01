@@ -3,7 +3,7 @@
     <div class="dashboard-text">
       博客管理系统
     </div>
-    <h1 style="margin-left: 36%; margin-top: 16%;">是哪位java卷王让我看看</h1>
+    <h1 style="margin-left: 47%; margin-top: 20%;">首页</h1>
   </div>
 </template>
 
