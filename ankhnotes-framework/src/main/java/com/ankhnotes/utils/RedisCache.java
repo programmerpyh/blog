@@ -195,6 +195,17 @@ public class RedisCache {
     }
 
     /**
+     * 判断当前Hash中是否含有该hKey
+     *
+     * @param key Redis键
+     * @param hKey Hash键
+     * @return 是否存在该Hash键
+     */
+    public boolean isCacheMapHasHkey(final String key, final String hKey){
+        return redisTemplate.opsForHash().hasKey(key, hKey);
+    }
+
+    /**
      * 获得缓存的基本对象列表
      *
      * @param pattern 字符串匹配模式
