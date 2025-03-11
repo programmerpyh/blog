@@ -74,6 +74,7 @@ public class CategoryController {
         try {
             List<Category> categoryList = categoryService.list();
             List<ExcelCategoryVO> categoryVOS = BeanCopyUtils.copyBeanList(categoryList, ExcelCategoryVO.class);
+            //todo 设置producer发送消息
             WebUtils.setDownloadHeader("分类.xlsx", response);
             EasyExcel.write(response.getOutputStream(), ExcelCategoryVO.class).autoCloseStream(Boolean.FALSE)
                     .sheet("文章分类").doWrite(categoryVOS);
