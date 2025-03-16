@@ -68,19 +68,12 @@ public class CategoryController {
     }
 
     @PreAuthorize("@PermissionService.hasPermission('content:category:export')")
-    @mySystemLog(logDescription = "导出所有分类到Excel, 返回给前端下载")
+    @mySystemLog(logDescription = "导出所有分类到Excel, rocketmq异步")
     @GetMapping("/export")
     public void exportExcel(HttpServletResponse response){
-        try {
-            List<Category> categoryList = categoryService.list();
-            List<ExcelCategoryVO> categoryVOS = BeanCopyUtils.copyBeanList(categoryList, ExcelCategoryVO.class);
-            //todo 设置producer发送消息
-            WebUtils.setDownloadHeader("分类.xlsx", response);
-            EasyExcel.write(response.getOutputStream(), ExcelCategoryVO.class).autoCloseStream(Boolean.FALSE)
-                    .sheet("文章分类").doWrite(categoryVOS);
-        } catch (Exception e) {
+        if (!categoryService.requestExcelExport())
             WebUtils.renderString(response, JSON.toJSONString(ResponseResult.errorResult(AppHttpCodeEnum.SYSTEM_ERROR)));
-        }
+        WebUtils.renderString(response, JSON.toJSONString(ResponseResult.okResult()));
     }
 
 }

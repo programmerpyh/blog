@@ -27,4 +27,6 @@ public interface CategoryService extends IService<Category> {
     ResponseResult deleteCategory(List<Long> ids);
 
     ResponseResult getCategoryInfo(Long id);
+
+    boolean requestExcelExport();
 }

@@ -10,20 +10,24 @@ import com.ankhnotes.mapper.CategoryMapper;
 import com.ankhnotes.service.ArticleService;
 import com.ankhnotes.service.CategoryService;
 import com.ankhnotes.utils.BeanCopyUtils;
-import com.ankhnotes.vo.CategoryListVO;
-import com.ankhnotes.vo.CategoryVO;
-import com.ankhnotes.vo.GetCategoryListVO;
-import com.ankhnotes.vo.PageVO;
+import com.ankhnotes.vo.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import org.apache.rocketmq.client.producer.SendCallback;
+import org.apache.rocketmq.client.producer.SendResult;
+import org.apache.rocketmq.client.producer.SendStatus;
+import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +42,9 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
     @Autowired
     @Lazy //解决循环依赖
     private ArticleService articleService;
+
+    @Autowired
+    private RocketMQTemplate rocketMQTemplate;
 
     @Override
     //获取所有 有文章 的分类
@@ -121,5 +128,18 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryMapper, Category> i
         Category category = getById(id);
         CategoryVO categoryVO = BeanCopyUtils.copyBean(category, CategoryVO.class);
         return ResponseResult.okResult(categoryVO);
+    }
+
+    /**
+     * 获取所有分类, 封装为消息通知rocketmq
+     */
+    @Override
+    public boolean requestExcelExport() {
+        List<Category> categoryList = list();
+        List<ExcelCategoryVO> categoryVOS = BeanCopyUtils.copyBeanList(categoryList, ExcelCategoryVO.class);
+
+        Message<List<ExcelCategoryVO>> message = MessageBuilder.withPayload(categoryVOS).build();
+        SendResult sendResult = rocketMQTemplate.syncSend("excel-export", message);
+        return sendResult.getSendStatus().equals(SendStatus.SEND_OK);
     }
 }
